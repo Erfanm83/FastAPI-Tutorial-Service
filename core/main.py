@@ -18,7 +18,12 @@ def retrieve_names_list():
 
 
 # /names/:id (GET(RETRIEVE),PUT/PATCH(UPDATE),DELETE)
-
+@app.get("/names/{name_id}")
+def retrieve_name_detail(name_id:int):
+    for name in names_list:
+        if name["id"] == name_id:
+            return name
+    return {"detail":"object not found"}
 
 
 @app.get("/")
