@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, status, HTTPException,Path
+from fastapi import FastAPI, Query, status, HTTPException,Path,Form
 from fastapi.responses import JSONResponse
 import random
 
@@ -30,7 +30,7 @@ def retrieve_names_list(q: str | None = Query(deprecated=True,
 
 
 @app.post("/names", status_code=status.HTTP_201_CREATED)
-def create_name(name: str):
+def create_name(name: str = Form()):
     name_obj = {"id": random.randint(6, 100), "name": name}
     names_list.append(name_obj)
     return name_obj
@@ -47,7 +47,7 @@ def retrieve_name_detail(name_id: int = Path(alias="object_id",title="object id"
 
 
 @app.put("/names/{name_id}", status_code=status.HTTP_200_OK)
-def update_name_detail(name_id: int, name: str):
+def update_name_detail(name_id: int = Path(), name: str  = Form()):
     for item in names_list:
         if item["id"] == name_id:
             item["name"] = name
