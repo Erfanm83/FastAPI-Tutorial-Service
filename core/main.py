@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, status, HTTPException,Path,Form
+from fastapi import FastAPI, Query, status, HTTPException,Path,Form,Body,File,UploadFile
 from fastapi.responses import JSONResponse
 import random
 
@@ -30,7 +30,7 @@ def retrieve_names_list(q: str | None = Query(deprecated=True,
 
 
 @app.post("/names", status_code=status.HTTP_201_CREATED)
-def create_name(name: str = Form()):
+def create_name(name: str = Body(embed=True)):
     name_obj = {"id": random.randint(6, 100), "name": name}
     names_list.append(name_obj)
     return name_obj
@@ -70,3 +70,10 @@ def delete_name(name_id: int):
 def root():
     content = {"message": "Hello World! "}
     return JSONResponse(content=content, status_code=status.HTTP_202_ACCEPTED)
+
+
+@app.post("/upload_file/")
+async def upload_file(file: UploadFile = File(...)):
+    content = await file.read()  # Asynchronous reading
+    print(file.__dict__)
+    return {"filename": file.filename, "content_type": file.content_type, "file_size": len(content)}
