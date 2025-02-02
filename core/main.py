@@ -1,16 +1,15 @@
 from fastapi import FastAPI, Query, status, HTTPException,Path,Form,Body,File,UploadFile,Depends
 from fastapi.responses import JSONResponse
-import random
 from contextlib import asynccontextmanager
 from schemas import PersonCreateSchema,PersonResponseSchema,PersonUpdateSchema
 from typing import List
-from database import get_db,Person
+from database import Base,engine,get_db,Person
 from sqlalchemy.orm import Session
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Application startup")    
+    print("Application startup")
     yield 
     print("Application shutdown")
 
@@ -39,12 +38,9 @@ def retrieve_names_list(q: str | None = Query(deprecated=True,
 
 @app.post("/names", status_code=status.HTTP_201_CREATED,response_model=PersonResponseSchema)
 def create_name(request : PersonCreateSchema,db:Session = Depends(get_db)):
-    # name_obj = {"id": random.randint(6, 100), "name": person.name}
-    # names_list.append(name_obj)
     new_person = Person(name=request.name)
     db.add(new_person)
     db.commit()
-    # db.refresh(new_person)
     return new_person
 
 
@@ -61,8 +57,6 @@ def retrieve_name_detail(name_id: int = Path(title="object id",description="the 
 
 @app.put("/names/{name_id}", status_code=status.HTTP_200_OK,response_model=PersonResponseSchema)
 def update_name_detail(request : PersonUpdateSchema,name_id: int = Path(),db:Session = Depends(get_db)):
-
-        
     person = db.query(Person).filter_by(id=name_id).one_or_none()
     if person:
         person.name = request.name

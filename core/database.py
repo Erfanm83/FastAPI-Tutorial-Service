@@ -22,7 +22,7 @@ class Person(Base):
     __tablename__ = "persons"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String())
-    last_name = Column(String())
+    age = Column(Integer())
     
     
 def get_db():
