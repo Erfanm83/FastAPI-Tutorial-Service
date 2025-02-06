@@ -3,6 +3,7 @@ from core.database import Base
 from sqlalchemy.orm import relationship
 
 
+
 class TaskModel(Base):
     __tablename__ = "tasks"
     
