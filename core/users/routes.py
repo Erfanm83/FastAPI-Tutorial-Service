@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from core.database import get_db
 from typing import List
 import secrets
-from auth.jwt_auth import generate_access_token,generate_refresh_token
+from auth.jwt_auth import generate_access_token,generate_refresh_token,decode_refresh_token
 
 router = APIRouter(tags=["users"],prefix="/users")
 
@@ -41,3 +41,10 @@ async def user_register(request:UserRegisterSchema,db:Session = Depends(get_db))
     db.add(user_obj)
     db.commit()
     return JSONResponse(content={"detail":"user registered successfully"})
+
+
+@router.post("/refresh-token")
+async def user_refresh_token(request:UserRefreshTokenSchema,db:Session = Depends(get_db)):
+    user_id = decode_refresh_token(request.token)
+    access_token = generate_access_token(user_id)
+    return JSONResponse(content={"access_token":access_token})
