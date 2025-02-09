@@ -19,7 +19,7 @@ def get_authenticated_user(
     token = credentials.credentials
     try:
         decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms="HS256")
-        user_id = decoded.get("user_id",None)
+        user_id = decoded.get("user_id", None)
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Authentication failed, user_id not in the payload")
         

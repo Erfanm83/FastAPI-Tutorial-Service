@@ -3,3 +3,4 @@ alembic>1.14,<1.15
 passlib[bcrypt] 
 pyjwt
 Faker
+flake8
