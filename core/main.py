@@ -5,7 +5,6 @@ from users.routes import router as users_routes
 import time
 from fastapi.middleware.cors import CORSMiddleware
 
-
 tags_metadata = [
     {
         "name": "tasks",
