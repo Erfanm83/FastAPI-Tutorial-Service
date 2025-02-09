@@ -1,4 +1,4 @@
-from fastapi import FastAPI,Depends,Request
+from fastapi import FastAPI, Depends, Request
 from contextlib import asynccontextmanager
 from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
@@ -11,8 +11,8 @@ tags_metadata = [
         "description": "Operations related to task management",
         "externalDocs": {
             "description": "More about tasks",
-            "url": "https://example.com/docs/tasks"
-        }
+            "url": "https://example.com/docs/tasks",
+        },
     }
 ]
 
@@ -41,7 +41,10 @@ app = FastAPI(
     license_info={
         "name": "MIT License",
         "url": "https://opensource.org/licenses/MIT",
-    }, lifespan=lifespan, openapi_tags=tags_metadata)
+    },
+    lifespan=lifespan,
+    openapi_tags=tags_metadata,
+)
 
 app.include_router(tasks_routes)
 app.include_router(users_routes)
