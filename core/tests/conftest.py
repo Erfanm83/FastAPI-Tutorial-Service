@@ -6,6 +6,7 @@ import pytest
 from faker import Faker
 from users.models import UserModel
 from tasks.models import TaskModel
+from auth.jwt_auth import generate_access_token
 
 fake = Faker()
 
@@ -45,9 +46,17 @@ def tear_up_and_down_database():
 
 
 # function
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="package")
 def anon_client():
     client = TestClient(app)
+    yield client
+    
+@pytest.fixture(scope="package")
+def auth_client(db_session):
+    client = TestClient(app)
+    user = db_session.query(UserModel).filter_by(username="testuser").one()
+    access_token = generate_access_token(user.id)
+    client.headers.update({"Authorization":f"Bearer {access_token}"})
     yield client
 
 
@@ -74,4 +83,9 @@ def generate_mock_data(db_session):
     db_session.add_all(tasks_list)
     db_session.commit()
     print(f"added 10 tasks for user id {user.id}")
-    
+
+@pytest.fixture(scope="function")
+def random_task(db_session):
+    user = db_session.query(UserModel).filter_by(username="testuser").one()
+    task = db_session.query(TaskModel).filter_by(user_id=user.id).first()
+    return task
