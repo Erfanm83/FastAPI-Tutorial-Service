@@ -3,18 +3,26 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from users.models import UserModel
 from core.database import get_db
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,timezone
 import jwt
 from jwt.exceptions import DecodeError, InvalidSignatureError
 from core.config import settings
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+
 
 
 def get_authenticated_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ):
+
+    # Check if credentials are not provided
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed, token not provided",
+        )
 
     token = credentials.credentials
     try:
@@ -58,9 +66,8 @@ def get_authenticated_user(
             detail=f"Authentication failed, {e}",
         )
 
-
 def generate_access_token(user_id: int, expires_in: int = 60 * 5) -> str:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     payload = {
         "type": "access",
         "user_id": user_id,
@@ -71,7 +78,7 @@ def generate_access_token(user_id: int, expires_in: int = 60 * 5) -> str:
 
 
 def generate_refresh_token(user_id: int, expires_in: int = 3600 * 24) -> str:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     payload = {
         "type": "refresh",
         "user_id": user_id,
