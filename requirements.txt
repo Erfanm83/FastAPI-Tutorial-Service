@@ -4,3 +4,4 @@ passlib[bcrypt]
 pyjwt
 Faker
 flake8
+pytest
