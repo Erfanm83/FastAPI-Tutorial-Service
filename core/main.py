@@ -112,6 +112,8 @@ async def http_validation_exception_handler(request, exc):
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY , content=error_response)
 
 
+# background task handling
+
 def start_task(task_id):
     print(f"doing the process: {task_id}")
     time.sleep(random.randint(3,10))
@@ -122,6 +124,11 @@ def start_task(task_id):
 async def initiate_task(background_tasks: BackgroundTasks):
     background_tasks.add_task(start_task,task_id=random.randint(1,100))
     return JSONResponse(content={"detail":"task is done"})
+
+
+
+
+# caching example
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
