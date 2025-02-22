@@ -7,3 +7,4 @@ flake8
 pytest
 apscheduler
 fastapi-cache2
+psycopg2-binary

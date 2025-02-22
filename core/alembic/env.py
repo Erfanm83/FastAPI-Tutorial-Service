@@ -20,7 +20,12 @@ if config.config_file_name is not None:
 # Define the path to the .env file (parent directory of FastAPI project)
 BASE_DIR = Path(__file__).resolve().parent.parent  # Move up one directory
 ENV_PATH = BASE_DIR / ".env"
-load_dotenv(ENV_PATH)
+
+if ENV_PATH.exists():
+    load_dotenv(ENV_PATH)
+else:
+    # Log or handle that the .env file is missing, but proceed with global env variables
+    print(f"Warning: .env file not found. Falling back to global environment variables.")
 
 # Get the database URL from environment variables
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
@@ -65,7 +70,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        render_as_batch=True
+        # render_as_batch=True
     )
 
     with context.begin_transaction():
@@ -87,7 +92,8 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata,render_as_batch=True
+            connection=connection, target_metadata=target_metadata
+            # render_as_batch=True
         )
 
         with context.begin_transaction():
