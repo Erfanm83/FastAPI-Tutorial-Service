@@ -9,14 +9,28 @@ import time
 from fastapi.middleware.cors import CORSMiddleware
 import random
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.triggers.interval import IntervalTrigger
 import httpx
 from core.config import settings
+import logging
+import time
 
-scheduler = AsyncIOScheduler()
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+
+# Initialize Redis job store for APScheduler
+jobstores = {
+    "default": RedisJobStore(jobs_key="apscheduler.jobs", run_times_key="apscheduler.run_times", host="redis", port=6379, db=1)
+}
+
+scheduler = AsyncIOScheduler(jobstores=jobstores)
 
 def my_task():
-    print(f"Task executed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    # print(f"Task executed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Task executed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
 tags_metadata = [
     {
@@ -33,8 +47,8 @@ tags_metadata = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup")
-    # scheduler.add_job(my_task, IntervalTrigger(seconds=10))
-    scheduler.start()
+    # scheduler.add_job(my_task, IntervalTrigger(seconds=10), id="my_task", replace_existing=True)
+    scheduler.start()    
     
     yield
     
@@ -169,3 +183,16 @@ async def fetch_current_weather(latitude: float = 40.7128, longitude: float = -7
         return JSONResponse(content={"current_weather": current_weather})
     else:
         return JSONResponse(content={"detail": "Failed to fetch weather"}, status_code=500)
+    
+from core.email_util import send_email
+
+
+@app.get("/test-send-mail", status_code=200)
+async def test_send_mail():
+    await send_email(
+        subject="Test Email from FastAPI",
+        recipients=["recipient@example.com"],
+        body="This is a test email sent using the email_util function."
+    )
+    
+    return JSONResponse(content={"detail": "email has been sent"})
