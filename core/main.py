@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request,HTTPException,status
+from fastapi import FastAPI, Depends, Request,HTTPException,status,BackgroundTasks
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -7,6 +7,15 @@ from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
 import time
 from fastapi.middleware.cors import CORSMiddleware
+import random
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import httpx
+
+scheduler = AsyncIOScheduler()
+
+def my_task():
+    print(f"Task executed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
 tags_metadata = [
     {
@@ -23,7 +32,12 @@ tags_metadata = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application startup")
+    # scheduler.add_job(my_task, IntervalTrigger(seconds=10))
+    scheduler.start()
+    
     yield
+    
+    scheduler.shutdown()
     print("Application shutdown")
 
 
@@ -95,3 +109,61 @@ async def http_validation_exception_handler(request, exc):
     
     }
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY , content=error_response)
+
+
+def start_task(task_id):
+    print(f"doing the process: {task_id}")
+    time.sleep(random.randint(3,10))
+    print(f"finished task {task_id}")
+
+
+@app.get("/initiate-task", status_code=200)
+async def initiate_task(background_tasks: BackgroundTasks):
+    background_tasks.add_task(start_task,task_id=random.randint(1,100))
+    return JSONResponse(content={"detail":"task is done"})
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.decorator import cache
+
+
+# Set up the cache backend
+cache_backend = InMemoryBackend()
+FastAPICache.init(cache_backend)
+
+async def request_current_weather(latitude: float, longitude: float):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": latitude,
+        "longitude": longitude,
+        "current": "temperature_2m,relative_humidity_2m"
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        current_weather = data.get("current", {})
+        return current_weather
+    else:
+        return None
+    
+
+@app.get("/fetch-current-weather", status_code=200)
+#@cache(expire=10)
+async def fetch_current_weather(latitude: float = 40.7128, longitude: float = -74.0060):
+    cache_key = f"weather-{latitude}-{longitude}"
+    
+    cached_data = await cache_backend.get(cache_key)
+    if cached_data:
+        return JSONResponse(content={"current_weather": cached_data})
+    
+    current_weather = await request_current_weather(latitude, longitude)
+        
+
+    if current_weather:
+        await cache_backend.set(cache_key,current_weather,10)
+        return JSONResponse(content={"current_weather": current_weather})
+    else:
+        return JSONResponse(content={"detail": "Failed to fetch weather"}, status_code=500)

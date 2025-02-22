@@ -5,3 +5,5 @@ pyjwt
 Faker
 flake8
 pytest
+apscheduler
+fastapi-cache2
