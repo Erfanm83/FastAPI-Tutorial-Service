@@ -6,5 +6,5 @@ Faker
 flake8
 pytest
 apscheduler
-fastapi-cache2
+fastapi-cache2[redis]
 psycopg2-binary

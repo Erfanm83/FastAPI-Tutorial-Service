@@ -11,6 +11,7 @@ import random
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import httpx
+from core.config import settings
 
 scheduler = AsyncIOScheduler()
 
@@ -123,13 +124,15 @@ async def initiate_task(background_tasks: BackgroundTasks):
     return JSONResponse(content={"detail":"task is done"})
 
 from fastapi_cache import FastAPICache
-from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 
+from redis import asyncio as aioredis
 
 # Set up the cache backend
-cache_backend = InMemoryBackend()
-FastAPICache.init(cache_backend)
+redis = aioredis.from_url(settings.REDIS_URL)
+cache_backend = RedisBackend(redis)
+FastAPICache.init(cache_backend, prefix="fastapi-cache")
 
 async def request_current_weather(latitude: float, longitude: float):
     url = "https://api.open-meteo.com/v1/forecast"
@@ -151,19 +154,11 @@ async def request_current_weather(latitude: float, longitude: float):
     
 
 @app.get("/fetch-current-weather", status_code=200)
-#@cache(expire=10)
+@cache(expire=10)
 async def fetch_current_weather(latitude: float = 40.7128, longitude: float = -74.0060):
-    cache_key = f"weather-{latitude}-{longitude}"
-    
-    cached_data = await cache_backend.get(cache_key)
-    if cached_data:
-        return JSONResponse(content={"current_weather": cached_data})
-    
     current_weather = await request_current_weather(latitude, longitude)
-        
-
     if current_weather:
-        await cache_backend.set(cache_key,current_weather,10)
+
         return JSONResponse(content={"current_weather": current_weather})
     else:
         return JSONResponse(content={"detail": "Failed to fetch weather"}, status_code=500)
