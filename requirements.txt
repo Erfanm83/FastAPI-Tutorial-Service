@@ -8,4 +8,3 @@ pytest
 apscheduler
 fastapi-cache2[redis]
 psycopg2-binary
-fastapi_mail[httpx]
