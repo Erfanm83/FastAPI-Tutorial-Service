@@ -125,6 +125,10 @@ async def initiate_task(background_tasks: BackgroundTasks):
     background_tasks.add_task(start_task,task_id=random.randint(1,100))
     return JSONResponse(content={"detail":"task is done"})
 
+@app.get("/is_ready", status_code=200)
+async def readiness():
+    return JSONResponse(content="ok")
+
 
 
 
