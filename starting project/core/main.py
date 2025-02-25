@@ -5,14 +5,7 @@ from schemas import PersonCreateSchema,PersonResponseSchema,PersonUpdateSchema
 from typing import List
 from database import Base,engine,get_db,Person
 from sqlalchemy.orm import Session
-import sentry_sdk
 
-sentry_sdk.init(
-    dsn="https://6d9b2a7d6620421fe1b779944b16e1f4@sentry.hamravesh.com/8049",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -92,7 +85,3 @@ def delete_name(name_id: int,db:Session = Depends(get_db)):
 def root():
     content = {"message": "Hello World! "}
     return JSONResponse(content=content, status_code=status.HTTP_202_ACCEPTED)
-
-@app.get("/sentry-debug")
-async def trigger_error():
-    division_by_zero = 1 / 0
