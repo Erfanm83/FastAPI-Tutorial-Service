@@ -12,6 +12,15 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import httpx
 from core.config import settings
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="https://6d9b2a7d6620421fe1b779944b16e1f4@sentry.hamravesh.com/8049",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+)
+
 
 scheduler = AsyncIOScheduler()
 
@@ -185,3 +194,7 @@ async def test_send_mail():
         body="This is a test email sent using the email_util function."
     )
     return JSONResponse(content={"detail": "Email has been sent"})
+
+@app.get("/sentry-debug")
+async def trigger_error():
+    division_by_zero = 1 / 0

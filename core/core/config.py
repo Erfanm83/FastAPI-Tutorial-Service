@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     SQLALCHEMY_DATABASE_URL: str
     JWT_SECRET_KEY: str = "test"
     REDIS_URL: str
+    SENTRY_DSN:str = "https://6d9b2a7d6620421fe1b779944b16e1f4@sentry.hamravesh.com/8049"
 
     MAIL_USERNAME: str = ""
     MAIL_PASSWORD: str = ""
