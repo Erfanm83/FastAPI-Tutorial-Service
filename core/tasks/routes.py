@@ -33,6 +33,7 @@ async def retrieve_tasks_list(
     return query.limit(limit).offset(offset).all()
 
 
+
 @router.get("/tasks/{task_id}", response_model=TaskResponseSchema)
 async def retrieve_task_detail(
     task_id: int = Path(..., gt=0),
